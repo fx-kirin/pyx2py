@@ -1,0 +1,35 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim:fenc=utf-8
+
+import os
+import fire
+import re
+
+def convert_pyx_to_py(input_file, output_file):
+    with open(input_file, "r") as fread:
+        with open(output_file, "w") as fwrite:
+            for line in fread.readlines():
+                if re.match("^ *cdef +class .*$", line):
+                    line = re.sub("cdef +class", "class", line)
+                elif re.match("^ *cdef .*$", line):
+                    line = ""
+                elif re.search("cimport", line):
+                    line = ""
+                        
+                fwrite.write(line)
+
+def commandline_interface(input_file, output_file=None):
+    if os.path.exists(input_file):
+        file_name, ext = os.path.splitext(input_file)
+        if ext == ".pyx":
+            if output_file is None:
+                output_file = file_name + "_develop.py"
+            convert_pyx_to_py(input_file, output_file)
+        else:
+            print("File ext is not pyx. :%s"%(ext))
+    else:
+        print("input file:%s is not found."%(input_file))
+
+if __name__ == "__main__":
+    fire.Fire(commandline_interface)
